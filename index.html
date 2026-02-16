@@ -1,0 +1,988 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <base target="_top">
+  <meta charset="UTF-8">
+  <title>CX Brainstorming | Comfamiliar Risaralda</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Kalam:wght@300;400;700&family=Outfit:wght@300;500;700&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <style>
+    :root {
+      --comfa-blue: #0052cc;
+      --comfa-green: #4ade80;
+      --comfa-orange: #f97316;
+      --comfa-bg: #0f172a;
+    }
+
+    body {
+      font-family: 'Outfit', sans-serif;
+      background-color: var(--comfa-bg);
+      background-image:
+        radial-gradient(#1e293b 1px, transparent 1px),
+        radial-gradient(#1e293b 1px, transparent 1px);
+      background-size: 30px 30px;
+      background-position: 0 0, 15px 15px;
+      color: white;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    .glass-card {
+      background: rgba(30, 41, 59, 0.7);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+    }
+
+    /* --- POST-IT STYLES --- */
+    .post-it {
+      font-family: 'Kalam', cursive;
+      color: #1e293b;
+      position: relative;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 2px 5px 15px rgba(0, 0, 0, 0.4);
+      border-radius: 2px;
+      cursor: pointer;
+      min-height: 220px;
+      height: auto;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding-bottom: 2rem;
+    }
+
+    .post-it:hover {
+      transform: scale(1.05) rotate(0deg) translateY(-5px) !important;
+      box-shadow: 5px 15px 30px rgba(0, 0, 0, 0.5);
+      z-index: 50;
+    }
+
+    .paper-yellow {
+      background: #fef08a;
+      background: linear-gradient(135deg, #fef08a 0%, #fde047 100%);
+    }
+
+    .paper-blue {
+      background: #bae6fd;
+      background: linear-gradient(135deg, #bae6fd 0%, #7dd3fc 100%);
+    }
+
+    .paper-red {
+      background: #fecaca;
+      background: linear-gradient(135deg, #fecaca 0%, #fca5a5 100%);
+    }
+
+    .paper-white {
+      background: #ffffff;
+      background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+    }
+
+    .paper-neutral {
+      background: #f1f5f9;
+      background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+    }
+
+    .tape-effect {
+      background: rgba(255, 255, 255, 0.2);
+      backdrop-filter: blur(1px);
+      position: absolute;
+      top: -12px;
+      left: 50%;
+      transform: translateX(-50%) rotate(-1deg);
+      width: 40%;
+      height: 25px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    /* Tab transitions */
+    .tab-content {
+      display: none;
+      animation: fadeIn 0.4s ease-out;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .loader-spin {
+      border: 2px solid rgba(255, 255, 255, 0.1);
+      border-top: 2px solid white;
+      border-radius: 50%;
+      width: 16px;
+      height: 16px;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      0% {
+        transform: rotate(0deg);
+      }
+
+      100% {
+        transform: rotate(360deg);
+      }
+    }
+
+    /* Custom scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: #334155;
+      border-radius: 10px;
+    }
+  </style>
+</head>
+
+<body class="relative bg-slate-950">
+
+  <!-- ================= LOGIN ================= -->
+  <div id="login-view"
+    class="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950 transition-all duration-700">
+    <div class="glass-card p-10 rounded-3xl w-full max-w-md text-center border-t border-white/10">
+      <div class="mb-8">
+        <div
+          class="w-20 h-20 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-2xl mx-auto flex items-center justify-center mb-6 shadow-2xl shadow-blue-500/30 transform rotate-12">
+          <i class="fa-solid fa-brain text-4xl text-white"></i>
+        </div>
+        <h1 class="text-4xl font-extrabold tracking-tight text-white mb-2">CX Lab</h1>
+        <p class="text-slate-400 font-medium">Comfamiliar Risaralda | Brainstorming</p>
+      </div>
+
+      <div class="flex p-1.5 bg-slate-900/80 rounded-xl mb-8 border border-white/5">
+        <button onclick="switchRole('participant')" id="tab-p"
+          class="flex-1 py-2.5 rounded-lg text-sm font-bold transition-all bg-blue-600 text-white shadow-lg">Participante</button>
+        <button onclick="switchRole('admin')" id="tab-a"
+          class="flex-1 py-2.5 rounded-lg text-sm font-bold transition-all text-slate-400 hover:text-white">Facilitador</button>
+      </div>
+
+      <form id="login-form" class="space-y-5 text-left">
+        <div class="space-y-4 mb-8">
+          <div id="p-fields" class="space-y-4">
+            <div class="relative group">
+              <i
+                class="fa-solid fa-user absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-blue-500 transition-colors"></i>
+              <input type="text" id="user-name" placeholder="Tu Nombre Completo" required
+                class="w-full bg-slate-900/50 border border-white/10 rounded-xl py-3.5 pl-12 pr-4 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all">
+            </div>
+            <div class="relative group">
+              <i
+                class="fa-solid fa-building absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-blue-500 transition-colors"></i>
+              <input type="text" id="user-company" placeholder="Empresa / Proceso" required
+                class="w-full bg-slate-900/50 border border-white/10 rounded-xl py-3.5 pl-12 pr-4 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all">
+            </div>
+          </div>
+
+          <div id="a-fields" class="hidden space-y-4">
+            <div class="relative group">
+              <i
+                class="fa-solid fa-lock absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-indigo-500 transition-colors"></i>
+              <input type="password" id="admin-pass" placeholder="Contraseña de Facilitador"
+                class="w-full bg-slate-900/50 border border-white/10 rounded-xl py-3.5 pl-12 pr-4 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all">
+            </div>
+          </div>
+
+          <div class="relative group">
+            <i
+              class="fa-solid fa-folder-tree absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-emerald-500 transition-colors"></i>
+            <select id="login-project" required
+              class="w-full bg-slate-900/50 border border-white/10 rounded-xl py-3.5 pl-12 pr-4 text-white appearance-none focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 transition-all">
+              <option value="" disabled selected>Selecciona un Proyecto / Sesión</option>
+            </select>
+            <i
+              class="fa-solid fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none text-[10px]"></i>
+          </div>
+        </div>
+
+        <button type="submit"
+          class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold py-4 rounded-xl shadow-xl shadow-blue-600/20 transition-all transform hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-3">
+          <span>Entrar al Laboratorio</span>
+          <i class="fa-solid fa-chevron-right text-xs"></i>
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ================= MAIN APP ================= -->
+  <div id="app-view" class="hidden min-h-screen flex flex-col pb-24">
+
+    <!-- Navbar Premium -->
+    <nav class="sticky top-0 z-50 px-6 py-4 glass-card border-b border-white/5 flex items-center justify-between">
+      <div class="flex items-center gap-4">
+        <div class="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center shadow-lg transform -rotate-6">
+          <i class="fa-solid fa-lightbulb text-white text-xl"></i>
+        </div>
+        <div>
+          <h2 id="view-title" class="font-bold text-xl tracking-tight">Muro de Ideas</h2>
+          <div class="flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)] animate-pulse"></span>
+            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Sincronizado</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-6">
+        <div id="admin-nav" class="hidden flex items-center p-1 bg-slate-900 rounded-lg border border-white/5">
+          <button onclick="showTab('muro')" id="nav-muro"
+            class="nav-btn active px-4 py-1.5 rounded-md text-xs font-bold transition-all bg-slate-800 text-white shadow">Muro</button>
+          <button onclick="showTab('dashboard')" id="nav-dash"
+            class="nav-btn px-4 py-1.5 rounded-md text-xs font-bold transition-all text-slate-400 hover:text-white">Estadísticas</button>
+          <button onclick="showTab('projects')" id="nav-projects"
+            class="nav-btn px-4 py-1.5 rounded-md text-xs font-bold transition-all text-slate-400 hover:text-white">Proyectos</button>
+        </div>
+
+        <div id="admin-project-context"
+          class="hidden flex items-center gap-2 bg-slate-900 px-3 py-1.5 rounded-xl border border-white/5">
+          <i class="fa-solid fa-layer-group text-slate-500 text-[10px]"></i>
+          <select id="navbar-project-select" onchange="changeActiveProject(this.value)"
+            class="bg-transparent text-[11px] font-bold text-blue-400 outline-none appearance-none cursor-pointer">
+            <option value="">TODOS LOS PROYECTOS</option>
+          </select>
+        </div>
+
+        <div class="hidden md:flex flex-col items-end">
+          <span id="label-name" class="font-bold text-sm text-blue-400">---</span>
+          <span id="label-company" class="text-[10px] text-slate-500 font-bold uppercase tracking-tighter">---</span>
+        </div>
+
+        <button onclick="logout()"
+          class="w-10 h-10 flex items-center justify-center rounded-xl bg-slate-800 text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 transition-all border border-white/5 group"
+          title="Cerrar Sesión">
+          <i class="fa-solid fa-right-from-bracket group-hover:translate-x-0.5 transition-transform"></i>
+        </button>
+      </div>
+    </nav>
+
+    <main class="flex-grow p-6 lg:p-10">
+
+      <!-- TAB: MURO -->
+      <div id="tab-muro" class="tab-content active">
+        <!-- Filtros Rápidos (Solo Admin) -->
+        <div id="admin-filters" class="hidden mb-10 flex flex-wrap gap-4 items-center justify-between">
+          <div class="flex gap-2">
+            <button onclick="filterByColor('all')"
+              class="px-3 py-1.5 rounded-full bg-slate-800 text-xs font-bold border border-white/5 hover:bg-slate-700 transition-all">Todos</button>
+            <button onclick="filterByColor('positive')"
+              class="px-3 py-1.5 rounded-full bg-yellow-500/10 text-yellow-500 text-xs font-bold border border-yellow-500/20 hover:bg-yellow-500/20 transition-all">Positivos</button>
+            <button onclick="filterByColor('neutral')"
+              class="px-3 py-1.5 rounded-full bg-blue-500/10 text-blue-400 text-xs font-bold border border-blue-500/20 hover:bg-blue-500/20 transition-all">Neutrales</button>
+            <button onclick="filterByColor('negative')"
+              class="px-3 py-1.5 rounded-full bg-rose-500/10 text-rose-400 text-xs font-bold border border-rose-500/20 hover:bg-rose-500/20 transition-all">Negativos</button>
+          </div>
+          <div class="relative w-full md:w-64">
+            <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-xs"></i>
+            <input type="text" id="search-input" oninput="liveSearch()"
+              class="w-full bg-slate-900 border border-white/5 rounded-full pl-9 pr-4 py-2 text-xs focus:ring-1 focus:ring-blue-500 outline-none"
+              placeholder="Buscar por palabra o autor...">
+          </div>
+        </div>
+
+        <div id="ideas-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-8">
+          <!-- Dinámico -->
+        </div>
+      </div>
+
+      <!-- TAB: DASHBOARD -->
+      <div id="tab-dashboard" class="tab-content">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+          <div class="glass-card p-6 rounded-3xl border-l-4 border-yellow-400">
+            <div class="text-slate-500 text-xs font-bold uppercase tracking-widest mb-1">Ideas Positivas</div>
+            <div id="stat-pos" class="text-4xl font-extrabold text-white">0</div>
+          </div>
+          <div class="glass-card p-6 rounded-3xl border-l-4 border-blue-400">
+            <div class="text-slate-500 text-xs font-bold uppercase tracking-widest mb-1">Ideas Neutrales</div>
+            <div id="stat-neu" class="text-4xl font-extrabold text-white">0</div>
+          </div>
+          <div class="glass-card p-6 rounded-3xl border-l-4 border-rose-400">
+            <div class="text-slate-500 text-xs font-bold uppercase tracking-widest mb-1">Ideas Negativas</div>
+            <div id="stat-neg" class="text-4xl font-extrabold text-white">0</div>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <div class="glass-card p-8 rounded-3xl h-[400px] flex flex-col">
+            <h3 class="font-bold mb-6 flex items-center gap-3">
+              <i class="fa-solid fa-chart-pie text-blue-500"></i>
+              Distribución de Sentimientos
+            </h3>
+            <div class="flex-grow flex items-center justify-center p-4">
+              <canvas id="sentimentChart"></canvas>
+            </div>
+          </div>
+
+          <div class="glass-card p-8 rounded-3xl h-[400px] overflow-hidden flex flex-col">
+            <h3 class="font-bold mb-6 flex items-center gap-3">
+              <i class="fa-solid fa-ranking-star text-yellow-500"></i>
+              Top Participación por Empresa
+            </h3>
+            <div id="companies-list" class="space-y-4 overflow-y-auto pr-2">
+              <!-- Dinámico -->
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- TAB: PROJECTS (ADMIN ONLY) -->
+      <div id="tab-projects" class="tab-content">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div class="lg:col-span-1">
+            <div class="bg-slate-900 border border-white/5 rounded-3xl p-8 sticky top-32">
+              <h3 class="text-xl font-black mb-6 flex items-center gap-3">
+                <i class="fa-solid fa-plus text-emerald-400"></i>
+                Nuevo Proyecto
+              </h3>
+              <form id="new-project-form" class="space-y-4">
+                <input type="text" id="project-name" placeholder="Nombre del Proyecto" required
+                  class="w-full bg-slate-800 border border-white/10 rounded-xl py-3 px-4 text-white focus:ring-2 focus:ring-emerald-500/50 outline-none">
+                <button type="submit"
+                  class="w-full py-4 bg-emerald-600 hover:bg-emerald-500 text-white font-black rounded-xl transition-all shadow-lg active:scale-95">
+                  CREAR SESIÓN
+                </button>
+              </form>
+            </div>
+          </div>
+          <div class="lg:col-span-2">
+            <div class="bg-slate-900 border border-white/5 rounded-3xl p-8">
+              <h3 class="text-xl font-black mb-6">Listado de Proyectos</h3>
+              <div id="projects-list" class="space-y-4">
+                <!-- Se llena dinámicamente -->
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- FAB -->
+    <button id="fab-add" onclick="openIdeaModal()"
+      class="fixed bottom-10 right-10 w-18 h-18 bg-blue-600 hover:bg-blue-500 text-white rounded-full shadow-[0_0_30px_rgba(37,99,235,0.4)] flex items-center justify-center text-2xl transition-all transform hover:scale-110 active:scale-90 z-50 p-6">
+      <i class="fa-solid fa-plus pointer-events-none"></i>
+    </button>
+  </div>
+
+  <!-- ================= MODAL ================= -->
+  <div id="idea-modal"
+    class="fixed inset-0 z-[110] hidden opacity-0 transition-all duration-300 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm">
+    <div class="glass-card w-full max-w-xl rounded-3xl overflow-hidden transform scale-90 transition-all duration-300"
+      id="modal-content">
+      <div class="p-8 border-b border-white/5 flex justify-between items-center bg-slate-900/40">
+        <h3 class="text-2xl font-bold tracking-tight">Nueva Idea</h3>
+        <button onclick="closeIdeaModal()"
+          class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-white/10 transition-colors">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <form id="idea-form" class="p-8 space-y-8">
+        <div>
+          <label class="block text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-3 ml-1">Modo de
+            Actividad</label>
+          <div class="flex p-1 bg-slate-800 rounded-xl border border-white/5 mb-6 shadow-inner">
+            <button type="button" onclick="setSessionMode('Brainstorming')" id="mode-brain"
+              class="flex-1 py-2 rounded-lg text-[10px] font-bold transition-all bg-blue-600 text-white shadow-lg">BRAINSTORMING</button>
+            <button type="button" onclick="setSessionMode('Empatía')" id="mode-empatia"
+              class="flex-1 py-2 rounded-lg text-[10px] font-bold transition-all text-slate-400 hover:text-white">MEDICIÓN
+              EMPATÍA</button>
+          </div>
+
+          <label class="block text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-3 ml-1">Escribe tu
+            aporte</label>
+          <textarea id="idea-text" required rows="4" maxlength="400"
+            class="w-full bg-yellow-100/90 text-slate-900 font-medium text-xl p-6 rounded-lg shadow-inner outline-none focus:ring-4 focus:ring-yellow-400/20"
+            style="font-family: 'Kalam', cursive;" placeholder="¡Tengo una propuesta innovadora...!"></textarea>
+          <p class="text-[10px] text-right mt-2 text-slate-500 font-bold" id="char-count">0 / 400</p>
+        </div>
+
+        <div id="sentiment-section" class="hidden">
+          <label class="block text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-4 ml-1">Tipo de
+            Sentimiento</label>
+          <div class="grid grid-cols-3 gap-4">
+            <label class="relative cursor-pointer group">
+              <input type="radio" name="sentiment" value="positive" class="sr-only peer" required>
+              <div
+                class="p-4 rounded-2xl bg-slate-800 border-2 border-transparent peer-checked:border-green-500 peer-checked:bg-green-500/10 transition-all text-center">
+                <i class="fa-solid fa-face-smile text-2xl text-green-500 mb-2"></i>
+                <div class="text-[10px] font-bold uppercase">Positivo</div>
+              </div>
+            </label>
+            <label class="relative cursor-pointer group">
+              <input type="radio" name="sentiment" value="neutral" class="sr-only peer">
+              <div
+                class="p-4 rounded-2xl bg-slate-800 border-2 border-transparent peer-checked:border-blue-500 peer-checked:bg-blue-500/10 transition-all text-center">
+                <i class="fa-solid fa-face-meh text-2xl text-blue-500 mb-2"></i>
+                <div class="text-[10px] font-bold uppercase">Neutral</div>
+              </div>
+            </label>
+            <label class="relative cursor-pointer group">
+              <input type="radio" name="sentiment" value="negative" class="sr-only peer">
+              <div
+                class="p-4 rounded-2xl bg-slate-800 border-2 border-transparent peer-checked:border-rose-500 peer-checked:bg-rose-500/10 transition-all text-center">
+                <i class="fa-solid fa-face-frown text-2xl text-rose-500 mb-2"></i>
+                <div class="text-[10px] font-bold uppercase">Crítico</div>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <button type="submit" id="btn-save"
+          class="w-full bg-white text-slate-950 font-extrabold py-5 rounded-2xl hover:bg-slate-100 transition-all flex items-center justify-center gap-3 shadow-xl">
+          <span>Pegar en el Muro</span>
+          <i class="fa-solid fa-paper-plane text-blue-600"></i>
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    // --- MOCK SERVICE ---
+    if (typeof google === 'undefined') {
+      window.mockData = [
+        { nombre: "Camilo Torres", empresa: "CX Lab", idea: "¡Debemos automatizar el registro de entrada para agilizar procesos!", sentiment: "positive", timestamp: new Date() },
+        { nombre: "Diana Restrepo", empresa: "Comfamiliar", idea: "El aire acondicionado está fallando en la sala 2B.", sentiment: "negative", timestamp: new Date() },
+        { nombre: "Andrés Giraldo", empresa: "Innovación", idea: "Probar el método Design Thinking en la siguiente sesión.", sentiment: "neutral", timestamp: new Date() }
+      ];
+      window.google = {
+        script: {
+          run: {
+            withSuccessHandler: function (cb) { this._cb = cb; return this; },
+            registrarIdea: function (data) {
+              setTimeout(() => {
+                window.mockData.unshift(data);
+                this._cb({ success: true });
+              }, 500);
+            },
+            obtenerIdeas: function () {
+              setTimeout(() => this._cb(window.mockData), 500);
+            },
+            getAdminStats: function () {
+              setTimeout(() => {
+                const stats = {
+                  positive: window.mockData.filter(d => d.sentiment === 'positive').length,
+                  neutral: window.mockData.filter(d => d.sentiment === 'neutral').length,
+                  negative: window.mockData.filter(d => d.sentiment === 'negative').length,
+                  topCompanies: [["Comfamiliar", 12], ["CX Lab", 8], ["Innovación", 5]]
+                };
+                this._cb(stats);
+              }, 500);
+            }
+          }
+        }
+      };
+    }
+
+    // --- STATE ---
+    // --- INITIALIZATION ---
+    window.addEventListener('load', () => {
+      google.script.run.withSuccessHandler(projects => {
+        state.projects = projects;
+        const select = document.getElementById('login-project');
+        select.innerHTML = '<option value="" disabled selected>Selecciona un Proyecto / Sesión</option>';
+        projects.forEach(p => {
+          select.innerHTML += `<option value="${p.nombre}">${p.nombre}</option>`;
+        });
+
+        // Auto-selección por parámetro URL ?p=NombreProyecto
+        const params = new URLSearchParams(window.location.search);
+        const pParam = params.get('p');
+        if (pParam && projects.some(p => p.nombre === pParam)) {
+          select.value = pParam;
+        }
+      }).getProjects();
+    });
+
+    const state = {
+      user: { name: '', company: '' },
+      role: 'participant', // 'participant' | 'admin'
+      ideas: [],
+      filteredIdeas: [],
+      stats: null,
+      activeTab: 'muro',
+      chart: null,
+      isSaving: false,
+      sessionMode: 'Brainstorming',
+      refreshInterval: null,
+      filterMine: false,
+      activeColor: 'all',
+      searchTerm: '',
+      activeProject: '',
+      projects: []
+    };
+
+    // --- AUTH & NAVIGATION ---
+    function switchRole(role) {
+      state.role = role;
+      const tp = document.getElementById('tab-p');
+      const ta = document.getElementById('tab-a');
+      const pf = document.getElementById('p-fields');
+      const af = document.getElementById('a-fields');
+
+      const nameInput = document.getElementById('user-name');
+      const companyInput = document.getElementById('user-company');
+      const passInput = document.getElementById('admin-pass');
+
+      if (role === 'participant') {
+        tp.className = "flex-1 py-2.5 rounded-lg text-sm font-bold transition-all bg-blue-600 text-white shadow-lg";
+        ta.className = "flex-1 py-2.5 rounded-lg text-sm font-bold transition-all text-slate-400 hover:text-white";
+        pf.classList.remove('hidden');
+        af.classList.add('hidden');
+        nameInput.required = true;
+        companyInput.required = true;
+        passInput.required = false;
+      } else {
+        ta.className = "flex-1 py-2.5 rounded-lg text-sm font-bold transition-all bg-indigo-600 text-white shadow-lg";
+        tp.className = "flex-1 py-2.5 rounded-lg text-sm font-bold transition-all text-slate-400 hover:text-white";
+        pf.classList.add('hidden');
+        af.classList.remove('hidden');
+        nameInput.required = false;
+        companyInput.required = false;
+        passInput.required = true;
+      }
+    }
+
+    document.getElementById('login-form').addEventListener('submit', (e) => {
+      e.preventDefault();
+
+      const project = document.getElementById('login-project').value;
+
+      if (state.role === 'admin') {
+        state.activeProject = project; // Puede ser vacío para ver todos
+        const pass = document.getElementById('admin-pass').value.trim();
+        if (pass !== 'admin') {
+          alert('Acceso denegado: Contraseña incorrecta');
+          return;
+        }
+        state.user.name = "Facilitador";
+        state.user.company = "Control Central";
+        document.getElementById('admin-nav').classList.remove('hidden');
+        document.getElementById('admin-filters').classList.remove('hidden');
+        document.getElementById('admin-project-context').classList.remove('hidden');
+        document.getElementById('fab-add').classList.add('hidden');
+      } else {
+        if (!project) {
+          alert('Por favor selecciona un proyecto');
+          return;
+        }
+        state.activeProject = project;
+        state.user.name = document.getElementById('user-name').value;
+        state.user.company = document.getElementById('user-company').value;
+      }
+
+      document.getElementById('login-view').classList.add('opacity-0', 'pointer-events-none');
+      setTimeout(() => {
+        document.getElementById('login-view').classList.add('hidden');
+        document.getElementById('app-view').classList.remove('hidden');
+
+        document.getElementById('label-name').textContent = state.user.name;
+        document.getElementById('label-company').textContent = state.user.company;
+
+        loadData();
+        state.refreshInterval = setInterval(loadData, 5000);
+      }, 500);
+    });
+
+    function logout() {
+      if (state.refreshInterval) clearInterval(state.refreshInterval);
+      state.refreshInterval = null;
+
+      state.user = { name: '', company: '' };
+      state.ideas = [];
+      state.filteredIdeas = [];
+
+      document.getElementById('app-view').classList.add('hidden');
+      const loginView = document.getElementById('login-view');
+      loginView.classList.remove('hidden');
+      setTimeout(() => {
+        loginView.classList.remove('opacity-0', 'pointer-events-none');
+      }, 50);
+
+      // Reset forms & UI
+      document.getElementById('login-form').reset();
+      document.getElementById('admin-nav').classList.add('hidden');
+      document.getElementById('admin-filters').classList.add('hidden');
+      document.getElementById('admin-project-context').classList.add('hidden');
+      document.getElementById('participant-nav').classList.add('hidden');
+      document.getElementById('fab-add').classList.remove('hidden');
+      switchRole('participant'); // Default role on return
+    }
+
+    function showTab(tabId) {
+      state.activeTab = tabId;
+      document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+      document.getElementById('tab-' + tabId).classList.add('active');
+
+      document.querySelectorAll('.nav-btn').forEach(b => {
+        b.classList.remove('bg-slate-800', 'text-white', 'shadow');
+        b.classList.add('text-slate-400');
+      });
+      document.getElementById('nav-' + tabId).classList.add('bg-slate-800', 'text-white', 'shadow');
+      document.getElementById('nav-' + tabId).classList.remove('text-slate-400');
+
+      const titles = { 'muro': 'Muro de Ideas', 'dashboard': 'Dashboard de Gestión', 'projects': 'Gestión de Proyectos' };
+      document.getElementById('view-title').textContent = titles[tabId] || 'CX Brainstorming';
+
+      if (tabId === 'dashboard') loadStats();
+      if (tabId === 'projects') loadProjects();
+    }
+
+    // --- DATA FETCHING ---
+    function loadData() {
+      const params = { proyecto: state.activeProject };
+      if (state.role === 'participant') params.filtroUsuario = state.user.name;
+
+      google.script.run.withSuccessHandler(res => {
+        state.ideas = res;
+        applyFilters();
+      }).obtenerIdeas(params);
+    }
+
+    function loadStats() {
+      google.script.run.withSuccessHandler(renderStats).getAdminStats(state.activeProject);
+    }
+
+    function loadProjects() {
+      google.script.run.withSuccessHandler(projects => {
+        state.projects = projects;
+        renderProjects();
+
+        // Update both selects (login and navbar)
+        const selects = ['login-project', 'navbar-project-select'];
+        selects.forEach(id => {
+          const select = document.getElementById(id);
+          if (!select) return;
+          const current = select.value;
+
+          let html = id === 'login-project'
+            ? '<option value="" disabled selected>Selecciona un Proyecto / Sesión</option>'
+            : '<option value="">TODOS LOS PROYECTOS</option>';
+
+          projects.forEach(p => {
+            html += `<option value="${p.nombre}">${p.nombre}</option>`;
+          });
+          select.innerHTML = html;
+          select.value = current || (id === 'navbar-project-select' ? state.activeProject : '');
+        });
+      }).getProjects();
+    }
+
+    function changeActiveProject(val) {
+      state.activeProject = val;
+      loadData();
+      if (state.activeTab === 'dashboard') loadStats();
+      if (state.activeTab === 'projects') loadProjects();
+    }
+
+    function applyFilters() {
+      let filtered = [...state.ideas];
+
+      // Filtro de búsqueda
+      if (state.searchTerm) {
+        filtered = filtered.filter(i => {
+          const ideaText = String(i.idea || "").toLowerCase();
+          const nombreText = String(i.nombre || "").toLowerCase();
+          const empresaText = String(i.empresa || "").toLowerCase();
+          return ideaText.includes(state.searchTerm) ||
+            nombreText.includes(state.searchTerm) ||
+            empresaText.includes(state.searchTerm);
+        });
+      }
+
+      // Filtro de color (Admin)
+      if (state.activeColor && state.activeColor !== 'all') {
+        filtered = filtered.filter(i => i.sentiment === state.activeColor);
+      }
+
+      state.filteredIdeas = filtered;
+      renderGrid();
+    }
+
+    // --- RENDERING ---
+    function renderGrid() {
+      const grid = document.getElementById('ideas-grid');
+      grid.innerHTML = '';
+
+      if (state.filteredIdeas.length === 0) {
+        grid.innerHTML = `
+          <div class="col-span-full py-32 flex flex-col items-center opacity-30">
+            <i class="fa-solid fa-ghost text-6xl mb-6"></i>
+            <p class="font-bold tracking-widest uppercase text-xs">Sin ideas registradas aún</p>
+          </div>`;
+        return;
+      }
+
+      state.filteredIdeas.forEach((idea, i) => {
+        const card = document.createElement('div');
+        const rot = (Math.random() * 6 - 3).toFixed(1);
+        const tapeRot = (Math.random() * 8 - 4).toFixed(1);
+        const tapePos = (Math.random() * 20 + 40).toFixed(1);
+
+        const ideaNom = String(idea.nombre || "").trim();
+        const userNom = String(state.user.name || "").trim();
+        const isMine = ideaNom.toLowerCase() === userNom.toLowerCase();
+
+        let color = 'paper-neutral';
+        let icon = '';
+
+        if (idea.tipo === 'Empatía') {
+          color = idea.sentiment === 'positive' ? 'paper-yellow' : idea.sentiment === 'neutral' ? 'paper-blue' : 'paper-red';
+          icon = idea.sentiment === 'positive' ? 'fa-face-smile' : idea.sentiment === 'neutral' ? 'fa-face-meh' : 'fa-face-frown';
+        } else {
+          color = 'paper-white';
+        }
+
+        card.className = `post-it ${color} p-6 shadow-2xl self-start overflow-hidden transition-all duration-500 ${isMine ? 'ring-4 ring-blue-500/50 ring-offset-4 ring-offset-slate-950' : ''}`;
+        card.style.transform = `rotate(${rot}deg)`;
+
+        card.innerHTML = `
+          <div class="tape-effect" style="left: ${tapePos}%; transform: translateX(-50%) rotate(${tapeRot}deg);"></div>
+          <div class="flex justify-between items-start border-b border-black/5 pb-1 mb-2">
+            <div class="text-[9px] uppercase font-bold tracking-wide">
+              ${(state.role === 'admin' || isMine) ? `BY: ${isMine ? 'Tú' : idea.nombre} (${idea.empresa})` : (idea.tipo || 'Idea')}
+            </div>
+            ${icon ? `<i class="fa-solid ${icon} text-black/20 text-xs"></i>` : ''}
+          </div>
+          <div class="flex-grow flex items-center justify-center text-center mt-3 mb-4">
+            <p class="text-xl sm:text-2xl leading-tight text-slate-900">${idea.idea}</p>
+          </div>
+          <div class="text-[9px] text-right opacity-30 font-bold">${new Date(idea.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
+          ${isMine ? '<div class="absolute bottom-1 left-2 text-[8px] font-black text-blue-600/40 tracking-widest uppercase">Tu Aporte</div>' : ''}
+        `;
+
+        grid.appendChild(card);
+      });
+    }
+
+    function setSessionMode(mode) {
+      state.sessionMode = mode;
+      const b = document.getElementById('mode-brain');
+      const e = document.getElementById('mode-empatia');
+      const ss = document.getElementById('sentiment-section');
+      const ta = document.getElementById('idea-text');
+
+      if (mode === 'Brainstorming') {
+        b.className = "flex-1 py-2 rounded-lg text-[10px] font-bold transition-all bg-blue-600 text-white shadow-lg";
+        e.className = "flex-1 py-2 rounded-lg text-[10px] font-bold transition-all text-slate-400 hover:text-white";
+        ss.classList.add('hidden');
+        document.querySelectorAll('input[name="sentiment"]').forEach(i => i.required = false);
+        ta.placeholder = "¡Tengo una propuesta innovadora...!";
+      } else {
+        e.className = "flex-1 py-2 rounded-lg text-[10px] font-bold transition-all bg-indigo-600 text-white shadow-lg";
+        b.className = "flex-1 py-2 rounded-lg text-[10px] font-bold transition-all text-slate-400 hover:text-white";
+        ss.classList.remove('hidden');
+        document.querySelectorAll('input[name="sentiment"]').forEach(i => i.required = true);
+        ta.placeholder = "Describe el momento de verdad del cliente...";
+      }
+    }
+
+    function renderStats(stats) {
+      document.getElementById('stat-pos').textContent = stats.positive;
+      document.getElementById('stat-neu').textContent = stats.neutral;
+      document.getElementById('stat-neg').textContent = stats.negative;
+
+      // Chart
+      const ctx = document.getElementById('sentimentChart').getContext('2d');
+      if (state.chart) state.chart.destroy();
+
+      state.chart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels: ['Positivo', 'Neutral', 'Crítico'],
+          datasets: [{
+            data: [stats.positive, stats.neutral, stats.negative],
+            backgroundColor: ['#eab308', '#3b82f6', '#f43f5e'],
+            borderWidth: 0,
+            hoverOffset: 15
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { position: 'bottom', labels: { color: '#94a3b8', font: { weight: 'bold', size: 10 } } }
+          },
+          cutout: '70%'
+        }
+      });
+
+      // Companies list
+      const list = document.getElementById('companies-list');
+      list.innerHTML = '';
+      stats.topCompanies.forEach(([name, count]) => {
+        const row = document.createElement('div');
+        row.className = "flex items-center justify-between p-3 bg-slate-800/50 rounded-xl border border-white/5";
+        row.innerHTML = `
+          <span class="text-sm font-bold truncate pr-4">${name}</span>
+          <span class="bg-blue-600 px-3 py-1 rounded-lg text-[10px] font-extrabold">${count} Aportes</span>
+        `;
+        list.appendChild(row);
+      });
+    }
+
+    // --- SEARCH & FILTERS ---
+    function liveSearch() {
+      state.searchTerm = document.getElementById('search-input').value.toLowerCase();
+      applyFilters();
+    }
+
+    function filterByColor(color) {
+      state.activeColor = color;
+
+      // Update UI feedback for color buttons
+      const filters = ['all', 'positive', 'neutral', 'negative'];
+      filters.forEach(f => {
+        const btn = document.querySelector(`[onclick="filterByColor('${f}')"]`);
+        if (btn) {
+          if (f === color) {
+            btn.classList.add('bg-slate-700', 'ring-1', 'ring-white/20');
+          } else {
+            btn.classList.remove('bg-slate-700', 'ring-1', 'ring-white/20');
+          }
+        }
+      });
+
+      applyFilters();
+    }
+
+    // --- MODAL CONTROLS ---
+    function openIdeaModal() {
+      const m = document.getElementById('idea-modal');
+      const mc = document.getElementById('modal-content');
+      setSessionMode('Brainstorming');
+      m.classList.remove('hidden');
+      setTimeout(() => {
+        m.classList.remove('opacity-0');
+        mc.classList.remove('scale-90');
+      }, 10);
+    }
+
+    function closeIdeaModal() {
+      const m = document.getElementById('idea-modal');
+      const mc = document.getElementById('modal-content');
+      m.classList.add('opacity-0');
+      mc.classList.add('scale-90');
+      setTimeout(() => {
+        m.classList.add('hidden');
+        document.getElementById('idea-form').reset();
+        document.getElementById('char-count').textContent = "0 / 400";
+      }, 300);
+    }
+
+    // char count
+    document.getElementById('idea-text').addEventListener('input', (e) => {
+      document.getElementById('char-count').textContent = e.target.value.length + " / 400";
+    });
+
+    // submit
+    document.getElementById('idea-form').addEventListener('submit', (e) => {
+      e.preventDefault();
+      if (state.isSaving) return;
+
+      const btn = document.getElementById('btn-save');
+      const original = btn.innerHTML;
+      btn.innerHTML = '<div class="loader-spin"></div>';
+      state.isSaving = true;
+
+      const sentimentInput = document.querySelector('input[name="sentiment"]:checked');
+
+      const payload = {
+        nombre: state.user.name,
+        empresa: state.user.company,
+        idea: document.getElementById('idea-text').value,
+        sentiment: state.sessionMode === 'Empatía' ? (sentimentInput ? sentimentInput.value : 'neutral') : 'neutral',
+        tipo: state.sessionMode,
+        proyecto: state.activeProject
+      };
+
+      google.script.run
+        .withSuccessHandler(res => {
+          state.isSaving = false;
+          btn.innerHTML = original;
+          if (res.success) {
+            closeIdeaModal();
+            loadData();
+          } else {
+            alert('Error del servidor: ' + res.message);
+          }
+        })
+        .withFailureHandler(err => {
+          state.isSaving = false;
+          btn.innerHTML = original;
+          alert('Error de conexión o permisos: ' + err.toString());
+        })
+        .registrarIdea(payload);
+    });
+    // project management
+    document.getElementById('new-project-form').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const name = document.getElementById('project-name').value.trim();
+      if (!name) return;
+
+      google.script.run.withSuccessHandler(() => {
+        document.getElementById('new-project-form').reset();
+        loadProjects();
+      }).crearProyecto(name);
+    });
+
+    function renderProjects() {
+      const list = document.getElementById('projects-list');
+      list.innerHTML = '';
+      state.projects.forEach(p => {
+        const item = document.createElement('div');
+        item.className = "flex items-center justify-between p-4 bg-slate-800/50 border border-white/5 rounded-2xl";
+        item.innerHTML = `
+          <div>
+            <div class="font-bold text-white">${p.nombre}</div>
+            <div class="text-[10px] text-slate-500 uppercase tracking-widest">${new Date(p.fecha).toLocaleDateString()}</div>
+          </div>
+          <div class="flex items-center gap-2">
+            <button onclick="copySessionLink('${p.nombre}', this)" 
+              class="px-4 py-2 rounded-xl bg-slate-700 hover:bg-slate-600 text-[10px] font-bold text-white transition-all flex items-center gap-2">
+              <i class="fa-solid fa-share-nodes"></i>
+              <span>COMPARTIR</span>
+            </button>
+            <span class="px-2 py-0.5 rounded-full text-[8px] font-black bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">ACTIVO</span>
+          </div>
+        `;
+        list.appendChild(item);
+      });
+    }
+
+    function copySessionLink(projectName, btn) {
+      const baseUrl = 'https://script.google.com/macros/s/AKfycbzktb1KKclxdcEQcJvrqMwm2N5TrKlRecsXTWXtbFtOww2nQGFSAi4KU2YPy1owmwB_UQ/exec';
+      const url = `${baseUrl}?p=${encodeURIComponent(projectName)}`;
+
+      navigator.clipboard.writeText(url).then(() => {
+        const original = btn.innerHTML;
+        btn.innerHTML = '<i class="fa-solid fa-check"></i> <span class="text-emerald-400">¡COPIADO!</span>';
+        btn.classList.add('ring-2', 'ring-emerald-500/30');
+        setTimeout(() => {
+          btn.innerHTML = original;
+          btn.classList.remove('ring-2', 'ring-emerald-500/30');
+        }, 2000);
+      });
+    }
+  </script>
+</body>
+
+</html>
