@@ -248,7 +248,7 @@
         <div id="admin-nav" class="hidden flex items-center p-1 bg-slate-900 rounded-lg border border-white/5">
           <button onclick="showTab('muro')" id="nav-muro"
             class="nav-btn active px-4 py-1.5 rounded-md text-xs font-bold transition-all bg-slate-800 text-white shadow">Muro</button>
-          <button onclick="showTab('dashboard')" id="nav-dash"
+          <button onclick="showTab('dashboard')" id="nav-dashboard"
             class="nav-btn px-4 py-1.5 rounded-md text-xs font-bold transition-all text-slate-400 hover:text-white">Estadísticas</button>
           <button onclick="showTab('projects')" id="nav-projects"
             class="nav-btn px-4 py-1.5 rounded-md text-xs font-bold transition-all text-slate-400 hover:text-white">Proyectos</button>
@@ -486,6 +486,12 @@
                 };
                 this._cb(stats);
               }, 500);
+            },
+            getProjects: function () {
+              setTimeout(() => this._cb([{ nombre: "General", estado: "activo", fecha: new Date() }]), 500);
+            },
+            crearProyecto: function (name) {
+              setTimeout(() => this._cb({ success: true }), 500);
             }
           }
         }
@@ -496,7 +502,7 @@
     // --- INITIALIZATION ---
     window.addEventListener('load', () => {
       google.script.run.withSuccessHandler(projects => {
-        state.projects = projects;
+        state.projects = Array.isArray(projects) ? projects : [];
         const select = document.getElementById('login-project');
         select.innerHTML = '<option value="" disabled selected>Selecciona un Proyecto / Sesión</option>';
         projects.forEach(p => {
@@ -542,6 +548,8 @@
       const companyInput = document.getElementById('user-company');
       const passInput = document.getElementById('admin-pass');
 
+      const projectSelect = document.getElementById('login-project');
+
       if (role === 'participant') {
         tp.className = "flex-1 py-2.5 rounded-lg text-sm font-bold transition-all bg-blue-600 text-white shadow-lg";
         ta.className = "flex-1 py-2.5 rounded-lg text-sm font-bold transition-all text-slate-400 hover:text-white";
@@ -550,6 +558,7 @@
         nameInput.required = true;
         companyInput.required = true;
         passInput.required = false;
+        projectSelect.required = true;
       } else {
         ta.className = "flex-1 py-2.5 rounded-lg text-sm font-bold transition-all bg-indigo-600 text-white shadow-lg";
         tp.className = "flex-1 py-2.5 rounded-lg text-sm font-bold transition-all text-slate-400 hover:text-white";
@@ -558,6 +567,7 @@
         nameInput.required = false;
         companyInput.required = false;
         passInput.required = true;
+        projectSelect.required = false;
       }
     }
 
@@ -652,7 +662,7 @@
       if (state.role === 'participant') params.filtroUsuario = state.user.name;
 
       google.script.run.withSuccessHandler(res => {
-        state.ideas = res;
+        state.ideas = Array.isArray(res) ? res : [];
         applyFilters();
       }).obtenerIdeas(params);
     }
@@ -663,7 +673,7 @@
 
     function loadProjects() {
       google.script.run.withSuccessHandler(projects => {
-        state.projects = projects;
+        state.projects = Array.isArray(projects) ? projects : [];
         renderProjects();
 
         // Update both selects (login and navbar)
@@ -677,7 +687,7 @@
             ? '<option value="" disabled selected>Selecciona un Proyecto / Sesión</option>'
             : '<option value="">TODOS LOS PROYECTOS</option>';
 
-          projects.forEach(p => {
+          state.projects.forEach(p => {
             html += `<option value="${p.nombre}">${p.nombre}</option>`;
           });
           select.innerHTML = html;
@@ -947,6 +957,7 @@
     function renderProjects() {
       const list = document.getElementById('projects-list');
       list.innerHTML = '';
+      if (!Array.isArray(state.projects)) return;
       state.projects.forEach(p => {
         const item = document.createElement('div');
         item.className = "flex items-center justify-between p-4 bg-slate-800/50 border border-white/5 rounded-2xl";
