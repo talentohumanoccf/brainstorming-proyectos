@@ -501,21 +501,7 @@
     // --- STATE ---
     // --- INITIALIZATION ---
     window.addEventListener('load', () => {
-      google.script.run.withSuccessHandler(projects => {
-        state.projects = Array.isArray(projects) ? projects : [];
-        const select = document.getElementById('login-project');
-        select.innerHTML = '<option value="" disabled selected>Selecciona un Proyecto / Sesión</option>';
-        projects.forEach(p => {
-          select.innerHTML += `<option value="${p.nombre}">${p.nombre}</option>`;
-        });
-
-        // Auto-selección por parámetro URL ?p=NombreProyecto
-        const params = new URLSearchParams(window.location.search);
-        const pParam = params.get('p');
-        if (pParam && projects.some(p => p.nombre === pParam)) {
-          select.value = pParam;
-        }
-      }).getProjects();
+      loadProjects();
     });
 
     const state = {
@@ -661,39 +647,66 @@
       const params = { proyecto: state.activeProject };
       if (state.role === 'participant') params.filtroUsuario = state.user.name;
 
-      google.script.run.withSuccessHandler(res => {
-        state.ideas = Array.isArray(res) ? res : [];
-        applyFilters();
-      }).obtenerIdeas(params);
+      google.script.run
+        .withSuccessHandler(res => {
+          state.ideas = Array.isArray(res) ? res : [];
+          applyFilters();
+        })
+        .withFailureHandler(err => {
+          console.error("Error al obtener ideas:", err);
+        })
+        .obtenerIdeas(params);
     }
 
     function loadStats() {
-      google.script.run.withSuccessHandler(renderStats).getAdminStats(state.activeProject);
+      google.script.run
+        .withSuccessHandler(renderStats)
+        .withFailureHandler(err => {
+          console.error("Error al obtener estadísticas:", err);
+        })
+        .getAdminStats(state.activeProject);
     }
 
     function loadProjects() {
-      google.script.run.withSuccessHandler(projects => {
-        state.projects = Array.isArray(projects) ? projects : [];
-        renderProjects();
+      google.script.run
+        .withSuccessHandler(projects => {
+          state.projects = (Array.isArray(projects) && projects.length > 0) ? projects : [{ nombre: "General" }];
+          renderProjects();
 
-        // Update both selects (login and navbar)
-        const selects = ['login-project', 'navbar-project-select'];
-        selects.forEach(id => {
-          const select = document.getElementById(id);
-          if (!select) return;
-          const current = select.value;
+          // Update both selects (login and navbar)
+          const selects = ['login-project', 'navbar-project-select'];
+          selects.forEach(id => {
+            const select = document.getElementById(id);
+            if (!select) return;
+            const current = select.value;
 
-          let html = id === 'login-project'
-            ? '<option value="" disabled selected>Selecciona un Proyecto / Sesión</option>'
-            : '<option value="">TODOS LOS PROYECTOS</option>';
+            let html = id === 'login-project'
+              ? '<option value="" disabled selected>Selecciona un Proyecto / Sesión</option>'
+              : '<option value="">TODOS LOS PROYECTOS (Vista Global)</option>';
 
-          state.projects.forEach(p => {
-            html += `<option value="${p.nombre}">${p.nombre}</option>`;
+            state.projects.forEach(p => {
+              html += `<option value="${p.nombre}">${p.nombre}</option>`;
+            });
+            select.innerHTML = html;
+            select.value = current || (id === 'navbar-project-select' ? state.activeProject : '');
+
+            // Auto-selección inicial por parámetro URL ?p=NombreProyecto (solo si no hay valor actual)
+            if (id === 'login-project' && !select.value) {
+              const params = new URLSearchParams(window.location.search);
+              const pParam = params.get('p');
+              if (pParam && state.projects.some(p => p.nombre === pParam)) {
+                select.value = pParam;
+                state.activeProject = pParam;
+              }
+            }
           });
-          select.innerHTML = html;
-          select.value = current || (id === 'navbar-project-select' ? state.activeProject : '');
-        });
-      }).getProjects();
+        })
+        .withFailureHandler(err => {
+          console.error("Error cargando proyectos:", err);
+          state.projects = [{ nombre: "General" }];
+          renderProjects();
+        })
+        .getProjects();
     }
 
     function changeActiveProject(val) {
